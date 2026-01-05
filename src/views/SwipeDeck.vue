@@ -237,6 +237,8 @@ const swipe = async (action) => {
     }
   } catch (e) {
     console.error('Swipe error:', e)
+    currentIndex.value++
+    photoIndex.value = 0
   }
 }
 
@@ -372,98 +374,9 @@ button {
   border-radius: 12px;
   text-align: center;
 }
-</style>
-
-<style scoped>
-.deck {
-  max-width: 500px;
-  margin: 0 auto;
-  padding: 20px;
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.nav {
-  display: flex;
-  gap: 10px;
-}
-
-.loading {
-  text-align: center;
-  padding: 50px;
-}
-
 .card {
-  border: 1px solid #ddd;
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-.card img {
-  width: 100%;
-  height: 500px;
-  object-fit: cover;
-}
-
-.card-info {
-  padding: 20px;
-}
-
-.actions {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  padding: 20px;
-}
-
-button {
-  padding: 15px 30px;
-  font-size: 24px;
-  border: none;
-  border-radius: 50%;
-  cursor: pointer;
-  width: 60px;
-  height: 60px;
-}
-
-.dislike {
-  background: #ff4444;
-  color: white;
-}
-
-.like {
-  background: #44ff44;
-  color: white;
-}
-
-.no-more {
-  text-align: center;
-  padding: 50px;
-}
-
-.modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.modal-content {
-  background: white;
-  padding: 30px;
-  border-radius: 12px;
-  text-align: center;
-  max-width: 400px;
+  touch-action: pan-y;
+  user-select: none;
 }
 
 .modal-content button {
@@ -472,10 +385,5 @@ button {
   width: auto;
   height: auto;
   font-size: 16px;
-}
-
-.card {
-  touch-action: pan-y;
-  user-select: none;
 }
 </style>
