@@ -103,7 +103,7 @@ The application will be available at:
 http://localhost:5173
 ```
 
-### Compile and Minify for Production
+### 5. Compile and Minify for Production
 
 ```sh
 npm run build
