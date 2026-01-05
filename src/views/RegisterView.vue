@@ -97,7 +97,12 @@ const handleRegister = async () => {
       error.value = data.registerUser.errors.join(', ')
     } else {
       localStorage.setItem('token', data.registerUser.token)
-      router.push('/deck')
+      if (data.registerUser.errors.length) {
+        error.value = data.registerUser.errors.join(', ')
+      } else {
+        localStorage.setItem('token', data.registerUser.token)
+        router.push('/upload-photos')  // ← Changed from '/deck'
+      }
     }
   } catch (e) {
     error.value = e.message
