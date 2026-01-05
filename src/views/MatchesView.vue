@@ -18,7 +18,7 @@
         class="inbox-item"
         @click="openChat(item.match.id, item.otherUser)"
       >
-        <img :src="item.otherUser.primaryPhotoUrl || 'https://via.placeholder.com/60'" />
+        <img :src="item.otherUser.primaryPhotoUrl || (item.otherUser.gender === 'Female' ? '/girl.png' : '/boy.png')" />
         
         <div class="info">
           <h3>{{ item.otherUser.firstName }}</h3>
@@ -45,14 +45,16 @@ const MY_INBOX = gql`
   query MyInbox {
     myInbox {
       match { id }
-      otherUser { id firstName primaryPhotoUrl }
+      otherUser { id firstName gender primaryPhotoUrl }
       latestMessage { content createdAt }
       unreadCount
     }
   }
 `
 
-const { result, loading, refetch } = useQuery(MY_INBOX)
+const { result, loading, refetch } = useQuery(MY_INBOX, null, {
+  fetchPolicy: 'network-only'  // ← Always fetch from server, not cache
+})
 const inbox = computed(() => result.value?.myInbox || [])
 
 /* ---------------- OPEN CHAT ---------------- */
@@ -65,10 +67,14 @@ const openChat = (matchId, otherUser) => {
 }
 
 /* ---------------- REFRESH ON ROUTE ENTER ---------------- */
-watchEffect(() => {
-  // Whenever route changes, refetch inbox
-  refetch()
-})
+// watchEffect(() => {
+//   // Whenever route changes, refetch inbox
+//   refetch()
+// })
+
+// onMounted(() => {
+//   refetch()
+// })
 </script>
 
 
