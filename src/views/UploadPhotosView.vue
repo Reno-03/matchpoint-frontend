@@ -1,5 +1,8 @@
 <template>
   <div class="upload-photos">
+    <img src="/icon.jpg" alt="MatchPoint Logo" class="logo" />
+    <div class="app-name">MatchPoint</div>
+
     <h1>Upload Your Photos</h1>
     <p>Upload at least 1 photo to continue (max 5)</p>
     
@@ -125,58 +128,197 @@ const goToDeck = () => {
 </script>
 
 <style scoped>
-.upload-photos {
-  max-width: 600px;
-  margin: 50px auto;
-  padding: 20px;
-}
+  .upload-photos {
+    max-width: 420px;
+    margin: 60px auto;
+    padding: 40px;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    text-align: center;
+  }
+  
+  .logo {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 16px;
+    display: block;
+    border-radius: 12px;
+    object-fit: contain;
+  }
+  
+  .app-name {
+    font-size: 36px;
+    font-weight: 800;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, #ff7575 0%, #f97316 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -1px;
+  }
+  
+  h1 {
+    margin: 0 0 24px 0;
+    font-size: 32px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #ff7575 0%, #f97316 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+  }
+  
+  p {
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+  
+  input[type="file"] {
+    padding: 12px;
+    font-size: 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    background: #fafafa;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+    margin-bottom: 12px;
+  }
+  
+  input[type="file"]:focus {
+    outline: none;
+    border-color: #ff7575;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(255, 117, 117, 0.1);
+  }
+  
+  button {
+    padding: 14px 24px;
+    background: linear-gradient(135deg, #ff7575 0%, #f97316 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    margin: 8px 0;
+    width: 100%;
+    box-shadow: 0 2px 8px rgba(246, 72, 59, 0.3);
+  }
+  
+  button:hover:not(:disabled) {
+    background: linear-gradient(135deg, #ff7575 0%, #ea580c 100%);
+    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4);
+    transform: translateY(-1px);
+  }
+  
+  button:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(246, 72, 59, 0.3);
+  }
+  
+  button:disabled {
+    background: #e0e0e0;
+    color: #9e9e9e;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+  
+  .error {
+    color: #d32f2f;
+    background: #ffebee;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    margin: 12px 0;
+    border-left: 4px solid #d32f2f;
+    text-align: left;
+  }
+  
+  .gallery {
+    margin-top: 30px;
+    text-align: left;
+  }
+  
+  .photos {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 12px;
+    margin: 16px 0;
+  }
+  
+  .photo {
+    border: 1px solid #ddd;
+    padding: 8px;
+    border-radius: 12px;
+    background: #fafafa;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 12px;
+  }
+  
+  .photo img {
+    width: 100%;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 4px;
+  }
+  
+  @media (max-width: 480px) {
+    .upload-photos {
+      margin: 20px;
+      padding: 32px 24px;
+      border-radius: 12px;
+    }
+  
+    .logo {
+      width: 64px;
+      height: 64px;
+    }
+  
+    .app-name {
+      font-size: 32px;
+      margin-bottom: 4px;
+    }
+  
+    h1 {
+      font-size: 28px;
+      margin-bottom: 20px;
+    }
+  
+    input[type="file"] {
+      padding: 10px;
+    }
+  
+    button {
+      padding: 12px 20px;
+      font-size: 14px;
+    }
+  }
 
-input {
-  padding: 10px;
+  input[type="file"] {
+  -webkit-appearance: none;
+  appearance: none;
+  padding: 12px;
   font-size: 16px;
-  margin: 10px 0;
-}
-
-button {
-  padding: 12px 20px;
-  background: #42b983;
-  color: white;
-  border: none;
-  cursor: pointer;
-  font-size: 16px;
-  margin: 10px 5px;
-}
-
-button:disabled {
-  background: #ccc;
-}
-
-.error {
-  color: red;
-  margin: 10px 0;
-}
-
-.gallery {
-  margin-top: 30px;
-}
-
-.photos {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 15px;
-  margin: 20px 0;
-}
-
-.photo {
-  border: 1px solid #ddd;
-  padding: 10px;
+  border: 2px solid #e0e0e0;
   border-radius: 8px;
+  background: #fafafa;
+  cursor: pointer;
+  width: 100%;
+  box-sizing: border-box; /* important */
+  transition: all 0.2s ease;
 }
 
-.photo img {
-  width: 100%;
-  height: 150px;
-  object-fit: cover;
-  border-radius: 6px;
+input[type="file"]:focus {
+  outline: none;
+  border-color: #ff7575;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(255, 117, 117, 0.1);
 }
-</style>
+
+  </style>
