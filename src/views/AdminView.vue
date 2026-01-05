@@ -718,7 +718,8 @@ tbody tr:hover {
 }
 
 .form-group input,
-.form-group textarea {
+.form-group textarea,
+.form-group select {
   padding: 14px 16px;
   border: 2px solid #e0e0e0;
   border-radius: 8px;
