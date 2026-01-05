@@ -8,6 +8,7 @@ const CURRENT_USER = gql`
       id
       email
       firstName
+      role
     }
   }
 `

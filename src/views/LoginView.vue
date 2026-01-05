@@ -28,15 +28,15 @@ import { gql } from '@apollo/client/core'
 const router = useRouter()
 const route = useRoute()
 
-const email = ref('maria@test.com')
-const password = ref('password123')
+const email = ref('admin@matchpoint.com')
+const password = ref('admin123')
 const error = ref(null)
 
 const LOGIN_USER = gql`
   mutation LoginUser($input: LoginUserInput!) {
     loginUser(input: $input) {
       token
-      user { id firstName }
+      user { id firstName role }
       errors
     }
   }
@@ -59,9 +59,16 @@ const handleLogin = async () => {
       error.value = data.loginUser.errors.join(', ')
     } else {
       localStorage.setItem('token', data.loginUser.token)
-      // Redirect to intended page or default to deck
-      const redirect = route.query.redirect || '/deck'
-      router.push(redirect)
+      
+      // Check user role and redirect accordingly
+      const userRole = data.loginUser.user?.role
+      if (userRole === 'admin') {
+        router.push('/admin')
+      } else {
+        // Redirect to intended page or default to deck for regular users
+        const redirect = route.query.redirect || '/deck'
+        router.push(redirect)
+      }
     }
   } catch (e) {
     error.value = e.message
