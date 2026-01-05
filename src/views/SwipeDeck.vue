@@ -260,10 +260,12 @@ const logout = () => {
 
 
 <style scoped>
-.deck {
+  .deck {
   max-width: 500px;
-  margin: 0 auto;
-  padding: 20px;
+  margin: 20px auto;
+  padding: 0 16px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  text-align: center;
 }
 
 .header {
@@ -273,39 +275,98 @@ const logout = () => {
   margin-bottom: 20px;
 }
 
+.header h1 {
+  font-size: 32px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #ff7575 0%, #f97316 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.5px;
+}
+
 .nav {
   display: flex;
   gap: 10px;
 }
 
+.nav a {
+  text-decoration: none;
+  color: #ff7575;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.nav a:hover {
+  color: #f97316;
+}
+
+.nav button {
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #ff7575 0%, #f97316 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.nav button:hover {
+  background: linear-gradient(135deg, #ff7575 0%, #ea580c 100%);
+}
+
 .loading {
   text-align: center;
   padding: 50px;
+  font-size: 18px;
+  color: #666;
+}
+
+/* CENTERED DECK CARD */
+.deck-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 75vh; /* centers vertically */
 }
 
 .card {
-  border: 1px solid #ddd;
-  border-radius: 12px;
+  width: 90%;          /* fills most of small screens */
+  max-width: 380px;    /* caps the size on larger screens */
+  aspect-ratio: 0.66;  /* height = width / 0.66, gives nice portrait ratio */
+  border-radius: 16px;
   overflow: hidden;
+  background: #fff;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s ease;
+  touch-action: pan-y;
+  user-select: none;
 }
 
 /* PHOTO GALLERY */
 .photo-wrapper {
   position: relative;
   width: 100%;
-  height: 500px;
+  padding-top: 100%; /* Aspect ratio: height/width = 1.3 (~portrait) */
   cursor: pointer;
+  background: #f0f0f0;
+  overflow: hidden;
 }
 
 .photo-wrapper img {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: cover; /* ensures image fills container without distortion */
 }
 
 .photo-dots {
   position: absolute;
-  bottom: 10px;
+  bottom: 12px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -313,52 +374,85 @@ const logout = () => {
 }
 
 .photo-dots span {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.4);
+  background: rgba(255, 255, 255, 0.5);
+  transition: background 0.2s ease;
 }
 
 .photo-dots span.active {
   background: white;
 }
 
+/* CARD INFO */
 .card-info {
-  padding: 20px;
+  padding: 16px 20px;
+  text-align: left;
 }
 
+.card-info h2 {
+  font-size: 24px;
+  margin: 0 0 4px 0;
+  font-weight: 700;
+}
+
+.card-info p {
+  margin: 4px 0;
+  color: #555;
+  font-size: 14px;
+}
+
+/* ACTION BUTTONS */
 .actions {
   display: flex;
   justify-content: center;
-  gap: 20px;
-  padding: 20px;
+  gap: 16px;
+  padding-bottom: 16px;
 }
 
-button {
-  padding: 15px;
+.actions button {
+  width: 60px;
+  height: 60px;
   font-size: 24px;
   border: none;
   border-radius: 50%;
   cursor: pointer;
-  width: 60px;
-  height: 60px;
+  color: white;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.actions button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.2);
 }
 
 .dislike {
   background: #ff4444;
-  color: white;
 }
 
 .like {
   background: #44ff44;
-  color: white;
 }
 
+/* NO MORE USERS */
 .no-more {
   text-align: center;
   padding: 50px;
+  font-size: 16px;
+  color: #666;
 }
 
+.no-more h2 {
+  font-size: 24px;
+  margin-bottom: 8px;
+  background: linear-gradient(135deg, #ff7575 0%, #f97316 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* MATCH MODAL */
 .modal {
   position: fixed;
   inset: 0;
@@ -366,24 +460,78 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 999;
 }
 
 .modal-content {
-  background: white;
-  padding: 30px;
-  border-radius: 12px;
+  background: #fff;
+  padding: 32px;
+  border-radius: 16px;
   text-align: center;
+  max-width: 400px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
 }
-.card {
-  touch-action: pan-y;
-  user-select: none;
+
+.modal-content h2 {
+  font-size: 28px;
+  margin-bottom: 12px;
+  background: linear-gradient(135deg, #ff7575 0%, #f97316 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.modal-content p {
+  font-size: 16px;
+  color: #555;
+  margin-bottom: 20px;
 }
 
 .modal-content button {
-  margin: 10px;
-  border-radius: 8px;
-  width: auto;
-  height: auto;
+  padding: 12px 20px;
   font-size: 16px;
+  border-radius: 8px;
+  border: none;
+  margin: 8px;
+  background: linear-gradient(135deg, #ff7575 0%, #f97316 100%);
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
 }
+
+.modal-content button:hover {
+  background: linear-gradient(135deg, #ff7575 0%, #ea580c 100%);
+}
+
+/* RESPONSIVE */
+@media (max-width: 480px) {
+  .deck {
+    padding: 16px;
+  }
+
+  .header h1 {
+    font-size: 28px;
+  }
+
+  .card {
+    width: 280px;
+    height: 440px;
+  }
+
+  .card-info h2 {
+    font-size: 20px;
+  }
+
+  .actions button {
+    width: 50px;
+    height: 50px;
+    font-size: 20px;
+  }
+
+  .photo-wrapper {
+    height: auto;
+  }
+}
+
 </style>
+  
