@@ -65,7 +65,10 @@ const CURRENT_USER = gql`
   }
 `
 
-const { result, refetch } = useQuery(CURRENT_USER)
+const { result, refetch } = useQuery(CURRENT_USER, null, {
+  fetchPolicy: 'network-only'
+})
+
 const { mutate: uploadPhotoMutation } = useMutation(UPLOAD_PHOTO)
 
 const photos = computed(() => result.value?.currentUser?.photos || [])
