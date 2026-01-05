@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="public/icon.jpg" alt="MatchPoint Logo" width="200" />
+</p>
+
 # MatchPoint Web App
 
 MatchPoint is a dating application built with **Vue.js** on the frontend and a **Ruby on Rails GraphQL API** on the backend. The frontend uses **Apollo Client** to communicate with the GraphQL API.
