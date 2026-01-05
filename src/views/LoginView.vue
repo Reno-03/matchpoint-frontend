@@ -21,11 +21,12 @@
 
 <script setup>
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useMutation } from '@vue/apollo-composable'
 import { gql } from '@apollo/client/core'
 
 const router = useRouter()
+const route = useRoute()
 
 const email = ref('maria@test.com')
 const password = ref('password123')
@@ -58,7 +59,9 @@ const handleLogin = async () => {
       error.value = data.loginUser.errors.join(', ')
     } else {
       localStorage.setItem('token', data.loginUser.token)
-      router.push('/deck')
+      // Redirect to intended page or default to deck
+      const redirect = route.query.redirect || '/deck'
+      router.push(redirect)
     }
   } catch (e) {
     error.value = e.message

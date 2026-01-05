@@ -52,4 +52,30 @@ const router = createRouter({
   ]
 })
 
+// Middleware to check if user is authenticated before accessing routes
+router.beforeEach((to, from, next) => {
+  const token = localStorage.getItem('token')
+  const isAuthenticated = !!token
+  
+  // Check if route requires authentication
+  if (to.meta.requiresAuth) {
+    if (!isAuthenticated) {
+      // Redirect to login if not authenticated
+      next({ name: 'login', query: { redirect: to.fullPath } })
+    } else {
+      // User is authenticated, allow access
+      next()
+    }
+  } else {
+    // Public routes (login, register, home)
+    if (isAuthenticated && (to.name === 'login' || to.name === 'register' || to.name === 'home')) {
+      // If already logged in, redirect to deck
+      next({ name: 'deck' })
+    } else {
+      // Allow access to public routes
+      next()
+    }
+  }
+})
+
 export default router
