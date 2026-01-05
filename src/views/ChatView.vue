@@ -30,7 +30,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watchEffect, nextTick } from 'vue'
+import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { useQuery, useMutation } from '@vue/apollo-composable'
 import { gql } from '@apollo/client/core'
@@ -41,10 +41,9 @@ const sending = ref(false)
 const messagesContainer = ref(null)
 const currentUserId = ref(null)
 
-const matchId = ref(route.params.matchId)
-const otherUserId = ref(route.query.userId)
-const otherUserName = ref(route.query.name)
-const readMessageIds = ref(new Set())
+const matchId = route.params.matchId
+const otherUserId = route.query.userId
+const otherUserName = route.query.name
 
 /* ---------------- GRAPHQL ---------------- */
 const CONVERSATION_MESSAGES = gql`
@@ -64,7 +63,7 @@ const CONVERSATION_MESSAGES = gql`
 const SEND_MESSAGE = gql`
   mutation SendMessage($input: SendMessageInput!) {
     sendMessage(input: $input) {
-      message { id content createdAt sender { id firstName } receiver { id firstName } read }
+      message { id content createdAt }
       errors
     }
   }
@@ -72,18 +71,30 @@ const SEND_MESSAGE = gql`
 
 const MARK_AS_READ = gql`
   mutation MarkAsRead($input: MarkAsReadInput!) {
-    markAsRead(input: $input) { message { id read } errors }
+    markAsRead(input: $input) { 
+      message { id read } 
+      errors 
+    }
   }
 `
+
+/* ---------------- QUERIES & MUTATIONS ---------------- */
+const { result, refetch } = useQuery(
+  CONVERSATION_MESSAGES, 
+  { matchId },
+  { fetchPolicy: 'network-only' }  // ← Always get fresh messages
+)
+
+const { mutate: sendMessageMutation } = useMutation(SEND_MESSAGE)
+const { mutate: markAsReadMutation } = useMutation(MARK_AS_READ)
+
+const messages = computed(() => result.value?.conversationMessages || [])
 
 /* ---------------- FUNCTIONS ---------------- */
 const scrollToBottom = () => {
   nextTick(() => {
     if (messagesContainer.value) {
-      messagesContainer.value.scrollTo({
-        top: messagesContainer.value.scrollHeight,
-        behavior: 'smooth'
-      })
+      messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
     }
   })
 }
@@ -95,15 +106,16 @@ const sendMessage = async () => {
   try {
     const { data } = await sendMessageMutation({
       input: {
-        matchId: matchId.value,
-        receiverId: otherUserId.value,
+        matchId: matchId,
+        receiverId: otherUserId,
         content: newMessage.value
       }
     })
 
     if (!data.sendMessage.errors.length) {
       newMessage.value = ''
-      refetch({ matchId: matchId.value })
+      await refetch()
+      scrollToBottom()
     }
   } catch (e) {
     console.error('Send error:', e)
@@ -112,11 +124,19 @@ const sendMessage = async () => {
   }
 }
 
-const markAsRead = async (messageId) => {
-  try {
-    await markAsReadMutation({ input: { messageId } })
-  } catch (e) {
-    console.error('Mark as read error:', e)
+const markUnreadMessages = async () => {
+  if (!currentUserId.value) return
+  
+  const unreadMessages = messages.value.filter(
+    msg => !msg.read && msg.receiver.id === currentUserId.value
+  )
+
+  for (const msg of unreadMessages) {
+    try {
+      await markAsReadMutation({ input: { messageId: msg.id } })
+    } catch (e) {
+      console.error('Mark as read error:', e)
+    }
   }
 }
 
@@ -127,41 +147,21 @@ const formatTime = (timestamp) => {
   })
 }
 
-/* ---------------- QUERIES & MUTATIONS ---------------- */
-const { result, refetch } = useQuery(CONVERSATION_MESSAGES, { matchId: matchId.value })
-const { mutate: sendMessageMutation } = useMutation(SEND_MESSAGE)
-const { mutate: markAsReadMutation } = useMutation(MARK_AS_READ)
-
-const messages = computed(() => result.value?.conversationMessages || [])
-
-watchEffect(() => {
-  // update route params if changed
-  matchId.value = route.params.matchId
-  otherUserId.value = route.query.userId
-  otherUserName.value = route.query.name
-
-  if (matchId.value) {
-    refetch({ matchId: matchId.value }).then(() => scrollToBottom())
-    readMessageIds.value.clear()
+/* ---------------- LIFECYCLE ---------------- */
+// Set current user ID when data loads
+watch(result, (val) => {
+  if (val?.currentUser) {
+    currentUserId.value = val.currentUser.id
+    markUnreadMessages()
+    scrollToBottom()
   }
 })
 
-watchEffect(() => {
-  if (!result.value) return
-  currentUserId.value = result.value.currentUser.id
-
-  // mark unread messages as read only once
-  messages.value.forEach(msg => {
-    if (!msg.read && msg.receiver.id === currentUserId.value && !readMessageIds.value.has(msg.id)) {
-      markAsRead(msg.id)
-      readMessageIds.value.add(msg.id)
-    }
-  })
-
+// Initial load
+onMounted(() => {
   scrollToBottom()
 })
 </script>
-
 
 <style scoped>
 .chat {
