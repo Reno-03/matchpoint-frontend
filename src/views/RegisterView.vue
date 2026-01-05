@@ -27,6 +27,17 @@
 
       <input v-model="form.country" placeholder="Country" required />
       <input v-model="form.city" placeholder="City" required />
+      <input v-model="form.mobile" type="tel" placeholder="Mobile Number" required />
+
+      <input v-model="form.school" placeholder="School (optional)" />
+
+      <select v-model="form.sexualOrientation" required>
+        <option value="" disabled hidden>Sexual Orientation</option>
+        <option value="Straight">Straight</option>
+        <option value="Bisexual">Bisexual</option>
+        <option value="Gay">Gay</option>
+        <option value="Other">Other</option>
+      </select>
       <textarea v-model="form.bio" placeholder="Bio (optional)"></textarea>
 
       <button type="submit" :disabled="loading">
@@ -58,7 +69,10 @@ const form = ref({
   genderInterest: '',
   country: 'Philippines',
   city: '',
-  bio: ''
+  bio: '',
+  mobile: '',               
+  school: '',               
+  sexualOrientation: ''     
 })
 
 const error = ref(null)
@@ -78,6 +92,11 @@ const { mutate: registerUser, loading } = useMutation(REGISTER_USER)
 const handleRegister = async () => {
   error.value = null
 
+  if (!/^\+?\d{10,15}$/.test(form.value.mobile)) {
+    error.value = "Mobile number must be 10-15 digits"
+    return
+  }
+
   try {
     const { data } = await registerUser({
       input: {
@@ -90,7 +109,10 @@ const handleRegister = async () => {
         genderInterest: form.value.genderInterest,
         country: form.value.country,
         city: form.value.city,
-        bio: form.value.bio
+        bio: form.value.bio,
+        mobile: form.value.mobile,                     
+        school: form.value.school,                     
+        sexualOrientation: form.value.sexualOrientation 
       }
     })
 

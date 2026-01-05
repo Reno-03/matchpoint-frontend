@@ -157,6 +157,28 @@
               <textarea v-model="updateForm.bio" rows="4"></textarea>
             </div>
 
+            <div class="form-group">
+              <label>Mobile</label>
+              <input v-model="updateForm.mobile" type="text" placeholder="09123456789" />
+            </div>
+
+            <div class="form-group">
+              <label>School</label>
+              <input v-model="updateForm.school" type="text" placeholder="Optional" />
+            </div>
+
+            <div class="form-group">
+              <label>Sexual Orientation</label>
+              <select v-model="updateForm.sexualOrientation">
+                <option value="" disabled hidden>Select</option>
+                <option value="Straight">Straight</option>
+                <option value="Bisexual">Bisexual</option>
+                <option value="Gay">Gay</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+
             <div v-if="updateError" class="error-message">
               {{ updateError }}
             </div>
@@ -197,7 +219,10 @@ const updateForm = ref({
   lastName: '',
   email: '',
   city: '',
-  bio: ''
+  bio: '',
+  mobile: '',
+  school: '',
+  sexualOrientation: ''
 })
 
 /* ---------------- GRAPHQL ---------------- */
@@ -223,6 +248,9 @@ const DASHBOARD_STATS = gql`
           email
           city
           bio
+          mobile
+          school
+          sexualOrientation
           matchesCount
         }
       }
@@ -281,7 +309,10 @@ const DELETE_USER = gql`
       }
     `
 
-const { result, loading, refetch } = useQuery(DASHBOARD_STATS)
+const { result, loading, refetch } = useQuery(DASHBOARD_STATS, null, {
+  fetchPolicy: 'network-only'
+})
+
 const { mutate: deleteUserMutation } = useMutation(DELETE_USER)
 const { mutate: updateUserMutation } = useMutation(UPDATE_USER)
 
@@ -329,9 +360,11 @@ const openUpdateModal = async (user) => {
     lastName: user.lastName,
     email: user.email,
     city: user.city,
-    bio: user.bio || ''
+    bio: user.bio || '',
+    mobile: user.mobile || '',
+    school: user.school || '',
+    sexualOrientation: user.sexualOrientation || ''
   }
-
   showUpdateModal.value = true
   updateError.value = null
 }
@@ -355,7 +388,13 @@ const updateUser = async () => {
   updating.value = true
   updateError.value = null
 
-  // Update user information using the updateUserMutation
+  // Optional frontend mobile validation
+  if (updateForm.value.mobile && !/^\+?\d{10,15}$/.test(updateForm.value.mobile)) {
+    updateError.value = "Mobile number must be 10-15 digits"
+    updating.value = false
+    return
+  }
+
   try {
     const { data } = await updateUserMutation({
       input: {
@@ -364,7 +403,10 @@ const updateUser = async () => {
         lastName: updateForm.value.lastName,
         email: updateForm.value.email,
         city: updateForm.value.city,
-        bio: updateForm.value.bio
+        bio: updateForm.value.bio,
+        mobile: updateForm.value.mobile,
+        school: updateForm.value.school,
+        sexualOrientation: updateForm.value.sexualOrientation
       }
     })
 
