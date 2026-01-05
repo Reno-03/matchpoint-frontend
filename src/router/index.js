@@ -4,6 +4,7 @@ import LoginView from '@/views/LoginView.vue'
 import SwipeDeck from '@/views/SwipeDeck.vue'
 import MatchesView from '@/views/MatchesView.vue'
 import ChatView from '@/views/ChatView.vue'
+import UploadPhotosView from '@/views/UploadPhotosView.vue'
 
 const router = createRouter({
   history: createWebHashHistory(),
@@ -27,18 +28,27 @@ const router = createRouter({
     {
       path: '/deck',
       name: 'deck',
-      component: SwipeDeck
+      component: SwipeDeck,
+      meta: { requiresAuth: true }
     },
     {
       path: '/matches',
       name: 'matches',
-      component: MatchesView
+      component: MatchesView,
+      meta: { requiresAuth: true }
     },
     {
       path: '/chat/:matchId',
       name: 'chat',
-      component: ChatView
+      component: ChatView,
+      meta: { requiresAuth: true }
     },
+    {
+      path: '/upload-photos',
+      name: 'upload-photos',
+      component: UploadPhotosView,
+      meta: { requiresAuth: true }
+    }
   ]
 })
 

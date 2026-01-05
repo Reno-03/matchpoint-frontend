@@ -32,36 +32,30 @@
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue'
-import { useRouter, useRoute, onBeforeRouteUpdate } from 'vue-router'
+import { computed, watchEffect } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { useQuery } from '@vue/apollo-composable'
 import { gql } from '@apollo/client/core'
 
 const router = useRouter()
 const route = useRoute()
 
+/* ---------------- GRAPHQL ---------------- */
 const MY_INBOX = gql`
   query MyInbox {
     myInbox {
       match { id }
-      otherUser {
-        id
-        firstName
-        primaryPhotoUrl
-      }
-      latestMessage {
-        content
-        createdAt
-      }
+      otherUser { id firstName primaryPhotoUrl }
+      latestMessage { content createdAt }
       unreadCount
     }
   }
 `
 
-const { result, loading, refetch } = useQuery(MY_INBOX, {}, { fetchPolicy: 'network-only' })
-
+const { result, loading, refetch } = useQuery(MY_INBOX)
 const inbox = computed(() => result.value?.myInbox || [])
 
+/* ---------------- OPEN CHAT ---------------- */
 const openChat = (matchId, otherUser) => {
   router.push({
     name: 'chat',
@@ -70,16 +64,13 @@ const openChat = (matchId, otherUser) => {
   })
 }
 
-// Refetch whenever route is re-entered
-onMounted(() => {
+/* ---------------- REFRESH ON ROUTE ENTER ---------------- */
+watchEffect(() => {
+  // Whenever route changes, refetch inbox
   refetch()
-})
-
-onBeforeRouteUpdate((to, from, next) => {
-  refetch()
-  next()
 })
 </script>
+
 
 <style scoped>
 .matches {

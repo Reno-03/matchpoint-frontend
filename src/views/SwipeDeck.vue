@@ -74,6 +74,7 @@ const SWIPE_DECK = gql`
       firstName
       city
       bio
+      gender
       primaryPhotoUrl
     }
   }
@@ -116,10 +117,17 @@ const { mutate: createSwipe } = useMutation(CREATE_SWIPE)
 /* ---------------- COMPUTED ---------------- */
 const users = computed(() => result.value?.swipeDeck ?? [])
 
-console.log(users)
-
 const deckUser = computed(() => {
-  return users.value[currentIndex.value] || null
+  const user = users.value[currentIndex.value] || null
+  
+  if (!user) return null
+ 
+  const defaultPhoto = user.gender === 'Female' ? '/girl.png' : '/boy.png'
+  
+  return {
+    ...user,
+    primaryPhotoUrl: user.primaryPhotoUrl || defaultPhoto
+  }
 })
 
 /* ---------------- ACTIONS ---------------- */
@@ -146,9 +154,16 @@ const swipe = async (action) => {
     // Move to next card
     currentIndex.value++
 
-    // Refetch if low on cards
-    if (users.value.length - currentIndex.value < 3) {
-      refetch()
+    // If reached end, refetch and reset
+    if (currentIndex.value >= users.value.length) {
+      await refetch()  // ← This fetches from cache
+      
+      // If still no new users, show "no more"
+      if (users.value.length === 0 || currentIndex.value >= users.value.length) {
+        currentIndex.value = users.value.length  // Trigger "no more users"
+      } else {
+        currentIndex.value = 0
+      }
     }
   } catch (e) {
     console.error('Swipe error:', e)
