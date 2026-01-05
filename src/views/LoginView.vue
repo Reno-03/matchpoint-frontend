@@ -28,8 +28,8 @@ import { gql } from '@apollo/client/core'
 const router = useRouter()
 const route = useRoute()
 
-const email = ref('admin@matchpoint.com')
-const password = ref('admin123')
+const email = ref('')
+const password = ref('')
 const error = ref(null)
 
 const LOGIN_USER = gql`
