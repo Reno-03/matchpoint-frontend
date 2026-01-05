@@ -159,6 +159,7 @@ const openChat = (matchId, otherUser) => {
 .info {
   flex: 1;
   text-align: left;
+  min-width: 0 /* crucial for text-overflow */
 }
 
 .info h3 {
