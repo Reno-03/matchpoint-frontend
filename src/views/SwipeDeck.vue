@@ -41,7 +41,7 @@
         </div>
 
         <div class="card-info">
-          <h2>{{ deckUser.firstName }}</h2>
+          <h2>{{ deckUser.firstName }} {{ deckUser.lastName }}</h2>
           <p>{{ deckUser.city }}</p>
           <p v-if="deckUser.bio">{{ deckUser.bio }}</p>
         </div>
@@ -98,6 +98,7 @@ const SWIPE_DECK = gql`
     swipeDeck(limit: $limit) {
       id
       firstName
+      lastName
       city
       bio
       gender

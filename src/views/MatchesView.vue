@@ -21,7 +21,7 @@
         <img :src="item.otherUser.primaryPhotoUrl || (item.otherUser.gender === 'Female' ? '/girl.png' : '/boy.png')" />
         
         <div class="info">
-          <h3>{{ item.otherUser.firstName }}</h3>
+          <h3>{{ item.otherUser.firstName }} {{ item.otherUser.lastName }}</h3>
           <p>{{ item.latestMessage?.content || 'Say hi!' }}</p>
         </div>
         
@@ -45,7 +45,7 @@ const MY_INBOX = gql`
   query MyInbox {
     myInbox {
       match { id }
-      otherUser { id firstName gender primaryPhotoUrl }
+      otherUser { id firstName lastName gender primaryPhotoUrl }
       latestMessage { content createdAt }
       unreadCount
     }
