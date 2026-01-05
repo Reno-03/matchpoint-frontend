@@ -74,6 +74,7 @@
                 <td>{{ user.matchesCount }}</td>
                 <td>
                   <button @click="viewMatches(user.id)" class="view-btn">View Matches</button>
+                  <button @click="openUpdateModal(user)" class="update-btn">Update</button>
                   <button @click="deleteUser(user.id)" class="delete-btn">Delete</button>
                 </td>
               </tr>
@@ -82,7 +83,7 @@
         </div>
 
         <!-- Modal for viewing matches -->
-        <div v-if="showMatchesModal" class="modal" @click="closeModal">
+        <div v-if="showMatchesModal" class="modal" @click="closeMatchesModal">
             <div class="modal-content" @click.stop>
                 <h2>Matches for {{ selectedUserName }}</h2>
                 
@@ -111,11 +112,56 @@
                 </tbody>
                 </table>
                 
-                <button @click="closeModal" class="close-btn">Close</button>
+                <button @click="closeMatchesModal" class="close-btn">Close</button>
             </div>
+        </div>
+
+        <!-- Modal for updating user information -->
+        <div v-if="showUpdateModal" class="modal" @click="closeUpdateModal">
+            <div class="modal-content" @click.stop>
+                <h2>Update User: {{ updateForm.firstName }} {{ updateForm.lastName }}</h2>
+                
+                <form @submit.prevent="updateUser" class="update-form">
+                    <div class="form-group">
+                        <label>First Name</label>
+                        <input v-model="updateForm.firstName" type="text" required />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Last Name</label>
+                        <input v-model="updateForm.lastName" type="text" required />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input v-model="updateForm.email" type="email" required />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>City</label>
+                        <input v-model="updateForm.city" type="text" required />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Bio</label>
+                        <textarea v-model="updateForm.bio" rows="4"></textarea>
+                    </div>
+                    
+                    <div v-if="updateError" class="error-message">
+                        {{ updateError }}
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" :disabled="updating" class="save-btn">
+                            {{ updating ? 'Updating...' : 'Save Changes' }}
+                        </button>
+                        <button type="button" @click="closeUpdateModal" class="cancel-btn">Cancel</button>
+                    </div>
+                </form>
             </div>
         </div>
       </div>
+    </div>
   </template>
   
   <script setup>
@@ -131,7 +177,21 @@
     const selectedUserId = ref(null)
     const selectedUserName = ref('')
     
+    const showUpdateModal = ref(false)
+    const updating = ref(false)
+    const updateError = ref(null)
+    const updateForm = ref({
+      id: null,
+      firstName: '',
+      lastName: '',
+      email: '',
+      city: '',
+      bio: ''
+    })
+    
     /* ---------------- GRAPHQL ---------------- */
+
+    // Query for the dashboard stats
     const DASHBOARD_STATS = gql`
       query DashboardStats {
         dashboardStats(popularLimit: 10) {
@@ -151,11 +211,13 @@
           lastName
           email
           city
+          bio
           matchesCount
         }
       }
     `
     
+    // Query for the user matches
     const USER_MATCHES = gql`
       query UserMatches($userId: ID!) {
         userMatches(userId: $userId) {
@@ -167,6 +229,38 @@
       }
     `
     
+    // Query for the user details
+    const USER_DETAILS = gql`
+      query UserDetails($userId: ID!) {
+        user(userId: $userId) {
+          id
+          firstName
+          lastName
+          email
+          city
+          bio
+        }
+      }
+    `
+    
+    // Mutation for updating a user
+    const UPDATE_USER = gql`
+      mutation UpdateUser($input: UpdateUserInput!) {
+        updateUser(input: $input) {
+          user {
+            id
+            firstName
+            lastName
+            email
+            city
+            bio
+          }
+          errors
+        }
+      }
+    `
+    
+    // Mutation for deleting a user
     const DELETE_USER = gql`
       mutation DeleteUser($input: DeleteUserInput!) {
         deleteUser(input: $input) {
@@ -178,6 +272,7 @@
     
     const { result, loading, refetch } = useQuery(DASHBOARD_STATS)
     const { mutate: deleteUserMutation } = useMutation(DELETE_USER)
+    const { mutate: updateUserMutation } = useMutation(UPDATE_USER)
     
     // Lazy query for user matches - only runs when called
     const { 
@@ -207,11 +302,73 @@
       return match.user1.id === selectedUserId.value ? match.user2 : match.user1
     }
     
-    // Close the modal
-    const closeModal = () => {
+    // Close the matches modal
+    const closeMatchesModal = () => {
       showMatchesModal.value = false
       selectedUserId.value = null
       selectedUserName.value = ''
+    }
+    
+    // Open update modal and load user details
+    // use allUsers query to get the user details
+    const openUpdateModal = async (user) => {
+      updateForm.value = {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        city: user.city,
+        bio: user.bio || ''
+      }
+      
+      showUpdateModal.value = true
+      updateError.value = null
+    }
+    
+    // Close update modal
+    const closeUpdateModal = () => {
+      showUpdateModal.value = false
+      updateForm.value = {
+        id: null,
+        firstName: '',
+        lastName: '',
+        email: '',
+        city: '',
+        bio: ''
+      }
+      updateError.value = null
+    }
+    
+    // Update user information
+    const updateUser = async () => {
+      updating.value = true
+      updateError.value = null
+      
+      // Update user information using the updateUserMutation
+      try {
+        const { data } = await updateUserMutation({
+          input: {
+            userId: updateForm.value.id,
+            firstName: updateForm.value.firstName,
+            lastName: updateForm.value.lastName,
+            email: updateForm.value.email,
+            city: updateForm.value.city,
+            bio: updateForm.value.bio
+          }
+        })
+        
+        if (data?.updateUser?.errors?.length) {
+          updateError.value = data.updateUser.errors.join(', ')
+        } else {
+          // Success - refresh the user list and close modal
+          await refetch()
+          closeUpdateModal()
+        }
+      } catch (e) {
+        updateError.value = e.message || 'Error updating user'
+      } finally {
+        updating.value = false
+      }
     }
     
     // Format the date
@@ -336,7 +493,21 @@
     border-radius: 4px;
     cursor: pointer;
     margin-right: 5px;
-    }
+  }
+  
+  .update-btn {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 5px;
+  }
+  
+  .update-btn:hover {
+    background: #2563eb;
+  }
 
     .modal {
     position: fixed;
@@ -373,5 +544,90 @@
     border: none;
     border-radius: 8px;
     cursor: pointer;
+    }
+    
+    .update-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    }
+    
+    .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    }
+    
+    .form-group label {
+    font-weight: 600;
+    color: #333;
+    }
+    
+    .form-group input,
+    .form-group textarea {
+    padding: 10px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    }
+    
+    .form-group input:focus,
+    .form-group textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    }
+    
+    .form-group textarea {
+    resize: vertical;
+    min-height: 80px;
+    }
+    
+    .error-message {
+    padding: 12px;
+    background: #ffebee;
+    color: #d32f2f;
+    border-radius: 8px;
+    border-left: 4px solid #d32f2f;
+    }
+    
+    .form-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 10px;
+    }
+    
+    .save-btn {
+    padding: 10px 20px;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    }
+    
+    .save-btn:hover:not(:disabled) {
+    background: #2563eb;
+    }
+    
+    .save-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    }
+    
+    .cancel-btn {
+    padding: 10px 20px;
+    background: #666;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    }
+    
+    .cancel-btn:hover {
+    background: #555;
     }
   </style>
