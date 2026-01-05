@@ -13,13 +13,35 @@
 
     <!-- Swipe Deck -->
     <div v-else-if="deckUser" class="deck-container">
-      <div class="card">
-        <img
-          :src="deckUser.primaryPhotoUrl || 'https://via.placeholder.com/400x500'"
-        />
+      <div
+        class="card"
+        :style="cardStyle"
+        @mousedown="onStart"
+        @mousemove="onMove"
+        @mouseup="onEnd"
+        @mouseleave="dragging && onEnd()"
+        @touchstart="onStart"
+        @touchmove="onMove"
+        @touchend="onEnd"
+      >
+
+
+        <!-- PHOTO GALLERY -->
+        <div class="photo-wrapper" @click="nextPhoto">
+          <img :src="deckUser.photos[photoIndex]" />
+
+          <!-- dots -->
+          <div class="photo-dots">
+            <span
+              v-for="(_, i) in deckUser.photos"
+              :key="i"
+              :class="{ active: i === photoIndex }"
+            />
+          </div>
+        </div>
 
         <div class="card-info">
-          <h2>{{ deckUser.firstName }}, {{ deckUser.age }}</h2>
+          <h2>{{ deckUser.firstName }}</h2>
           <p>{{ deckUser.city }}</p>
           <p v-if="deckUser.bio">{{ deckUser.bio }}</p>
         </div>
@@ -50,23 +72,27 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuery, useMutation } from '@vue/apollo-composable'
 import { gql } from '@apollo/client/core'
 import { useAuth } from '@/composables/useAuth'
 
+/* ---------------- ROUTER & AUTH ---------------- */
 const router = useRouter()
-
-/* ---------------- AUTH ---------------- */
-const { currentUser: authUser, loading: authLoading } = useAuth()
+const { currentUser: authUser } = useAuth()
 
 /* ---------------- STATE ---------------- */
 const currentIndex = ref(0)
+const photoIndex = ref(0)
 const showMatchModal = ref(false)
 const matchedUser = ref(null)
 
-/* ---------------- GRAPHQL QUERIES ---------------- */
+const startX = ref(0)
+const currentX = ref(0)
+const dragging = ref(false)
+
+/* ---------------- GRAPHQL ---------------- */
 const SWIPE_DECK = gql`
   query SwipeDeck($limit: Int!) {
     swipeDeck(limit: $limit) {
@@ -75,7 +101,12 @@ const SWIPE_DECK = gql`
       city
       bio
       gender
-      primaryPhotoUrl
+      photos {
+        id
+        url
+        position
+        isPrimary
+      }
     }
   }
 `
@@ -96,41 +127,82 @@ const CREATE_SWIPE = gql`
 const { result, loading, refetch } = useQuery(
   SWIPE_DECK,
   { limit: 20 },
-  { enabled: computed(() => !!authUser.value), fetchPolicy: 'network-only' }
+  {
+    enabled: computed(() => !!authUser.value),
+    fetchPolicy: 'network-only'
+  }
 )
 
-import { apolloClient } from '@/apollo'
+const { mutate: createSwipe } = useMutation(CREATE_SWIPE)
 
-const testQuery = async () => {
-  const { data, errors } = await apolloClient.query({
-    query: SWIPE_DECK,
-    variables: { limit: 20 },
-    fetchPolicy: 'network-only'
-  })
-  console.log('manual query result:', data, errors)
+/* ------ SWIPE FUNCTION --------- */
+const onStart = (e) => {
+  dragging.value = true
+  startX.value = e.touches ? e.touches[0].clientX : e.clientX
 }
 
-testQuery()
+const onMove = (e) => {
+  if (!dragging.value) return
+  currentX.value = (e.touches ? e.touches[0].clientX : e.clientX) - startX.value
+}
 
-const { mutate: createSwipe } = useMutation(CREATE_SWIPE)
+const onEnd = async () => {
+  dragging.value = false
+
+  if (currentX.value > 120) {
+    await swipe('like')
+  } else if (currentX.value < -120) {
+    await swipe('dislike')
+  }
+
+  currentX.value = 0
+}
+
+const cardStyle = computed(() => {
+  const rotate = currentX.value / 12
+  return {
+    transform: `translateX(${currentX.value}px) rotate(${rotate}deg)`,
+    transition: dragging.value ? 'none' : 'transform 0.3s ease'
+  }
+})
+
 
 /* ---------------- COMPUTED ---------------- */
 const users = computed(() => result.value?.swipeDeck ?? [])
 
 const deckUser = computed(() => {
-  const user = users.value[currentIndex.value] || null
-  
+  const user = users.value[currentIndex.value]
   if (!user) return null
- 
-  const defaultPhoto = user.gender === 'Female' ? '/girl.png' : '/boy.png'
-  
+
+  const defaultPhoto =
+    user.gender === 'Female' ? '/girl.png' : '/boy.png'
+
+  const photos =
+    user.photos?.length
+      ? user.photos
+          .slice()
+          .sort((a, b) => a.position - b.position)
+          .map(p => p.url)
+      : [defaultPhoto]
+
   return {
     ...user,
-    primaryPhotoUrl: user.primaryPhotoUrl || defaultPhoto
+    photos
   }
 })
 
+/* Reset gallery when user changes */
+watch(deckUser, () => {
+  photoIndex.value = 0
+})
+
 /* ---------------- ACTIONS ---------------- */
+const nextPhoto = () => {
+  if (!deckUser.value) return
+  photoIndex.value =
+    (photoIndex.value + 1) % deckUser.value.photos.length
+}
+
 const swipe = async (action) => {
   if (!deckUser.value?.id || !authUser.value?.id) return
 
@@ -138,11 +210,10 @@ const swipe = async (action) => {
     const { data } = await createSwipe({
       input: {
         swipedId: deckUser.value.id,
-        action,
-      },
+        action
+      }
     })
 
-    // If matched, show modal
     if (data?.createSwipe?.matched) {
       matchedUser.value =
         data.createSwipe.match.user1.id === authUser.value.id
@@ -151,19 +222,12 @@ const swipe = async (action) => {
       showMatchModal.value = true
     }
 
-    // Move to next card
     currentIndex.value++
+    photoIndex.value = 0
 
-    // If reached end, refetch and reset
     if (currentIndex.value >= users.value.length) {
-      await refetch()  // ← This fetches from cache
-      
-      // If still no new users, show "no more"
-      if (users.value.length === 0 || currentIndex.value >= users.value.length) {
-        currentIndex.value = users.value.length  // Trigger "no more users"
-      } else {
-        currentIndex.value = 0
-      }
+      await refetch()
+      currentIndex.value = 0
     }
   } catch (e) {
     console.error('Swipe error:', e)
@@ -185,6 +249,124 @@ const logout = () => {
   router.push('/login')
 }
 </script>
+
+
+<style scoped>
+.deck {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.nav {
+  display: flex;
+  gap: 10px;
+}
+
+.loading {
+  text-align: center;
+  padding: 50px;
+}
+
+.card {
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* PHOTO GALLERY */
+.photo-wrapper {
+  position: relative;
+  width: 100%;
+  height: 500px;
+  cursor: pointer;
+}
+
+.photo-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photo-dots {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+}
+
+.photo-dots span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.4);
+}
+
+.photo-dots span.active {
+  background: white;
+}
+
+.card-info {
+  padding: 20px;
+}
+
+.actions {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  padding: 20px;
+}
+
+button {
+  padding: 15px;
+  font-size: 24px;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  width: 60px;
+  height: 60px;
+}
+
+.dislike {
+  background: #ff4444;
+  color: white;
+}
+
+.like {
+  background: #44ff44;
+  color: white;
+}
+
+.no-more {
+  text-align: center;
+  padding: 50px;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  text-align: center;
+}
+</style>
 
 <style scoped>
 .deck {
@@ -284,5 +466,10 @@ button {
   width: auto;
   height: auto;
   font-size: 16px;
+}
+
+.card {
+  touch-action: pan-y;
+  user-select: none;
 }
 </style>
