@@ -1,7 +1,10 @@
 <template>
   <div class="deck">
     <div class="header">
-      <h1>MatchPoint</h1>
+      <div class="logo-wrapper">
+        <img src="/icon.jpg" alt="MatchPoint Logo" class="logo" />
+        <h1 class="app-name">MatchPoint</h1>
+      </div>
       <div class="nav">
         <router-link to="/matches">💬 Messages</router-link>
         <button @click="logout">Logout</button>
@@ -337,7 +340,7 @@ const logout = () => {
   border-radius: 16px;
   overflow: hidden;
   background: #fff;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.09);
   display: flex;
   flex-direction: column;
   transition: transform 0.3s ease;
@@ -502,6 +505,30 @@ const logout = () => {
 .modal-content button:hover {
   background: linear-gradient(135deg, #ff7575 0%, #ea580c 100%);
 }
+
+.logo-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-wrapper .logo {
+  width: 48px;     /* slightly smaller than login logo */
+  height: 48px;
+  border-radius: 12px;
+  object-fit: contain;
+}
+
+.logo-wrapper .app-name {
+  font-size: 28px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #ff7575 0%, #f97316 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -1px;
+  margin: 0;
+}
+
 
 /* RESPONSIVE */
 @media (max-width: 480px) {
