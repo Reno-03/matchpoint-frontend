@@ -1,20 +1,38 @@
 <template>
   <div class="login">
+    <!-- Logo -->
     <img src="/icon.jpg" alt="MatchPoint Logo" class="logo" />
     <div class="app-name">MatchPoint</div>
     <h1>Login</h1>
-    
+
+    <!-- Form -->
     <form @submit.prevent="handleLogin">
+      <!-- Email input -->
       <input v-model="email" type="email" placeholder="Email" required />
-      <input v-model="password" type="password" placeholder="Password" required />
-      
+
+      <!-- Password input with Lucide eye toggle -->
+      <div class="password-wrapper">
+        <input
+          v-model="password"
+          :type="showPassword ? 'text' : 'password'"
+          placeholder="Password"
+          required
+        />
+        <span class="eye-icon" @click="showPassword = !showPassword">
+          <component :is="showPassword ? Eye : EyeOff" size="18" />
+        </span>
+      </div>
+
+      <!-- Submit button -->
       <button type="submit" :disabled="loading">
         {{ loading ? 'Logging in...' : 'Login' }}
       </button>
-      
+
+      <!-- Error message -->
       <p v-if="error" class="error">{{ error }}</p>
     </form>
-    
+
+    <!-- Register link -->
     <p>Don't have an account? <router-link to="/register">Register</router-link></p>
   </div>
 </template>
@@ -25,11 +43,15 @@ import { useRouter, useRoute } from 'vue-router'
 import { useMutation } from '@vue/apollo-composable'
 import { gql } from '@apollo/client/core'
 
+// Lucide icons
+import { Eye, EyeOff } from 'lucide-vue-next'
+
 const router = useRouter()
 const route = useRoute()
 
 const email = ref('')
 const password = ref('')
+const showPassword = ref(false)
 const error = ref(null)
 
 const LOGIN_USER = gql`
@@ -46,26 +68,20 @@ const { mutate: loginUser, loading } = useMutation(LOGIN_USER)
 
 const handleLogin = async () => {
   error.value = null
-  
+
   try {
     const { data } = await loginUser({
-      input: {
-        email: email.value,
-        password: password.value
-      }
+      input: { email: email.value, password: password.value }
     })
-    
+
     if (data.loginUser.errors.length) {
       error.value = data.loginUser.errors.join(', ')
     } else {
       localStorage.setItem('token', data.loginUser.token)
-      
-      // Check user role and redirect accordingly
       const userRole = data.loginUser.user?.role
       if (userRole === 'admin') {
         router.push('/admin')
       } else {
-        // Redirect to intended page or default to deck for regular users
         const redirect = route.query.redirect || '/deck'
         router.push(redirect)
       }
@@ -84,7 +100,8 @@ const handleLogin = async () => {
   background: #ffffff;
   border-radius: 16px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  text-align: center;
 }
 
 .logo {
@@ -99,13 +116,10 @@ const handleLogin = async () => {
 .app-name {
   font-size: 36px;
   font-weight: 800;
-  text-align: center;
   margin-bottom: 8px;
   background: linear-gradient(135deg, #ff7575 0%, #f97316 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  background-clip: text;
-  letter-spacing: -1px;
 }
 
 h1 {
@@ -115,9 +129,6 @@ h1 {
   background: linear-gradient(135deg, #ff7575 0%, #f97316 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  background-clip: text;
-  text-align: center;
-  letter-spacing: -0.5px;
 }
 
 form {
@@ -144,8 +155,24 @@ input:focus {
   box-shadow: 0 0 0 3px rgba(255, 117, 117, 0.1);
 }
 
-input::placeholder {
-  color: #9e9e9e;
+.password-wrapper {
+  position: relative;
+}
+
+.password-wrapper input {
+  width: 100%;
+  padding-right: 40px; /* space for icon */
+  box-sizing: border-box;
+}
+
+.eye-icon {
+  position: absolute;
+  top: 50%;
+  right: 20px;
+  transform: translateY(-50%);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
 }
 
 button {
@@ -158,27 +185,12 @@ button {
   font-size: 16px;
   font-weight: 600;
   transition: all 0.2s ease;
-  margin-top: 8px;
-  box-shadow: 0 2px 8px rgba(246, 72, 59, 0.3);
-}
-
-button:hover:not(:disabled) {
-  background: linear-gradient(135deg, #ff7575 0%, #ea580c 100%);
-  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4);
-  transform: translateY(-1px);
-}
-
-button:active:not(:disabled) {
-  transform: translateY(0);
-  box-shadow: 0 2px 6px rgba(246, 72, 59, 0.3);
 }
 
 button:disabled {
   background: #e0e0e0;
   color: #9e9e9e;
   cursor: not-allowed;
-  box-shadow: none;
-  transform: none;
 }
 
 .error {
@@ -193,21 +205,18 @@ button:disabled {
 
 .login > p {
   margin-top: 24px;
-  text-align: center;
-  color: #666;
   font-size: 14px;
+  color: #666;
 }
 
 .login > p a {
   color: #ff7575;
   text-decoration: none;
   font-weight: 600;
-  transition: color 0.2s ease;
 }
 
 .login > p a:hover {
   color: #f97316;
-  text-decoration: underline;
 }
 
 @media (max-width: 480px) {
