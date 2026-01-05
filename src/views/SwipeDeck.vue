@@ -102,6 +102,7 @@ const SWIPE_DECK = gql`
       city
       bio
       gender
+      role
       photos {
         id
         url
@@ -169,7 +170,11 @@ const cardStyle = computed(() => {
 
 
 /* ---------------- COMPUTED ---------------- */
-const users = computed(() => result.value?.swipeDeck ?? [])
+const users = computed(() => {
+  const allUsers = result.value?.swipeDeck ?? []
+  // Filter to only show users with role "user" (exclude admin and other roles)
+  return allUsers.filter(user => user.role === 'user')
+})
 
 const deckUser = computed(() => {
   const user = users.value[currentIndex.value]
