@@ -93,6 +93,7 @@ http://localhost:3000/graphql
 ```sh
 cd matchpoint-frontend
 npm install
+npm install --save @apollo/client graphql graphql-tag @vue/apollo-composable
 ```
 
 ### 4. Start the Frontend Dev Server
