@@ -1,10 +1,29 @@
 <p align="center">
   <img src="public/icon.jpg" alt="MatchPoint Logo" width="200" />
 </p>
+<h1 align="center"> MatchPoint Web App </h1>
 
-# MatchPoint Web App
+<p align="center">
+<a href="https://vuejs.org/"><img src="https://img.shields.io/badge/Vue.js-4FC08D?style=for-the-badge&logo=vue.js&logoColor=white" alt="Vue.js"></a>
+<a href="https://vitejs.dev/"><img src="https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite"></a>
+<a href="https://graphql.org/"><img src="https://img.shields.io/badge/GraphQL-E10098?style=for-the-badge&logo=graphql&logoColor=white" alt="GraphQL"></a>
+<a href="https://www.apollographql.com/"><img src="https://img.shields.io/badge/Apollo_Client-311C87?style=for-the-badge&logo=apollo-graphql&logoColor=white" alt="Apollo Client"></a>
+<a href="https://rubyonrails.org/"><img src="https://img.shields.io/badge/Ruby_on_Rails-CC0000?style=for-the-badge&logo=ruby-on-rails&logoColor=white" alt="Ruby on Rails"></a>
+<a href="https://nodejs.org/"><img src="https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=node.js&logoColor=white" alt="Node.js"></a>
+</p>
 
-MatchPoint is a dating application built with **Vue.js** on the frontend and a **Ruby on Rails GraphQL API** on the backend. The frontend uses **Apollo Client** to communicate with the GraphQL API.
+<p align="center">
+<a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue?style=for-the-badge" alt="License: MIT"></a>
+<a href="#"><img src="https://img.shields.io/badge/status-active-success?style=for-the-badge" alt="Status"></a>
+</p>
+
+<p align="center">MatchPoint is a dating application built with <b>Vue.js</b> on the frontend and a <b>Ruby on Rails GraphQL API</b> on the backend. The frontend uses <b>Apollo Client</b> to communicate with the GraphQL API. </p>
+
+## Demo
+
+<div align="center">
+  <img src="/screenshots/demo.gif" height="400"/>
+</div>
 
 ## Tech Stack
 
@@ -120,8 +139,8 @@ npm run build
 
 ```sh
 const httpLink = createHttpLink({
-  // uri: 'http://localhost:3000/graphql',
-  uri: 'https://matchpoint-api-4026.onrender.com/graphql',
+  uri: 'http://localhost:3000/graphql',
+  // uri: 'https://matchpoint-api-4026.onrender.com/graphql',
 })
 ```
 
