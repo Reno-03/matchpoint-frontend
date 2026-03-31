@@ -14,7 +14,7 @@
 
 <p align="center">
 <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue?style=for-the-badge" alt="License: MIT"></a>
-<a href="#"><img src="https://img.shields.io/badge/status-active-success?style=for-the-badge" alt="Status"></a>
+<a href="#"><img src="https://img.shields.io/badge/status-inactive-red?style=for-the-badge" alt="Status"></a>
 </p>
 
 <p align="center">MatchPoint is a dating application built with <b>Vue.js</b> on the frontend and a <b>Ruby on Rails GraphQL API</b> on the backend. The frontend uses <b>Apollo Client</b> to communicate with the GraphQL API. </p>
